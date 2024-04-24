@@ -13,12 +13,18 @@ public partial class MainPage : ContentPage
 
         _heapSizeDisplay = new Label();
 
-        var button = new Button
+        var navButton = new Button
         {
             Text = "Nav"
         };
-        button.Pressed += ButtonOnPressed;
+        navButton.Pressed += NavButtonOnPressed;
 
+        var gcButton = new Button
+        {
+            Text = "GC"
+        };
+        gcButton.Pressed += GcButtonOnPressed;
+        
         Content = new VerticalStackLayout
         {
             new Label
@@ -26,11 +32,20 @@ public partial class MainPage : ContentPage
                 Text = "HeapSize MB"
             },
             _heapSizeDisplay,
-            button
+            navButton,
+            gcButton
         };
     }
 
-    void ButtonOnPressed(object? sender, EventArgs e)
+    private void GcButtonOnPressed(object sender, EventArgs e)
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        
+        UpdateHeapDisplay();
+    }
+
+    void NavButtonOnPressed(object? sender, EventArgs e)
     {
         _ = Navigation.PushAsync(new HighMemoryPage());
     }
@@ -39,6 +54,11 @@ public partial class MainPage : ContentPage
     {
         base.OnAppearing();
 
-        _heapSizeDisplay.Text = (GC.GetTotalMemory(true) / 1024d / 1024d).ToString(CultureInfo.InvariantCulture);
+        UpdateHeapDisplay();
+    }
+
+    private void UpdateHeapDisplay()
+    {
+        _heapSizeDisplay.Text = (GC.GetTotalMemory(false) / 1024d / 1024d).ToString(CultureInfo.InvariantCulture);
     }
 }
